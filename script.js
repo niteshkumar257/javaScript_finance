@@ -65,27 +65,63 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 
-
+// Dates
+const date=new Date();
+const day=date.getDate();
+const month=date.getMonth()+1;
+const year =date.getFullYear();
+const hour=date.getHours();
+const mintues=date.getMinutes();
+// Timer funtion
+let time=300;
+const setLogOutTime=(time)=>
+{
+  const countDown=setInterval(()=>
+  {
+    
+    labelTimer.textContent=`${String(Math.floor(time/60)).padStart(2,0)}:${String(time%60).padStart(2,0)}`
+    if(time===0)
+    {
+      clearInterval(countDown);
+      containerApp.style.opacity = "0"; 
+    }
+    time--;
+  },1000)
+  return countDown;
+ 
+}
+labelDate.textContent=`${day}/${month}/${year},${hour}:${mintues}`;
 // login 
 let currentAccount;
 btnLogin.addEventListener(('click'), (e) => {          
-  e.preventDefault();                                                                                         //This prevent from submiting the form
+  e.preventDefault();   
+
+
+    //This prevent from submiting the form
   currentAccount = accounts.find((acc) => acc.userName === inputLoginUsername.value)
   if (currentAccount?.pin === Number(inputLoginPin.value)) {
-     labelWelcome.textContent = ` Welcome back ,${currentAccount.owner.split(' ')[0]}`;                       //Welcome message
+     labelWelcome.textContent = ` Hi ,${currentAccount.owner}`;                       //Welcome message
      containerApp.style.opacity = "100";                                                                      // opacity is changed to 100
      updateUi(currentAccount);                                                                                // update the ui
    }
+   if(setLogOutTime(time))
+   {
+     console.log("Enterd")
+clearInterval(setLogOutTime(time));
+setLogOutTime(time);
+   }
+  console.log(setLogOutTime(time));
 })
 
 //Transfer
 btnTransfer.addEventListener('click', (e) => {
   e.preventDefault();
   const amoutTansfer = Number(inputTransferAmount.value);
-  const accountTransfer = accounts.find(acc => acc.userName === inputTransferTo.value);
+  const transferTo=inputTransferTo.value;
+  const accountTransfer = accounts.find(acc => acc.userName === transferTo);
   displaytotalValue(currentAccount);
   
-  if (amoutTansfer > 0 && Number(currentAccount.balance) > amoutTansfer && inputTransferTo.value && accountTransfer.userName !== currentAccount.userName) {
+  if (amoutTansfer > 0 && Number(currentAccount.balance) > amoutTansfer && accountTransfer.userName !== currentAccount.userName) {
     console.log("Transfer valid");
     currentAccount.movements.push(-amoutTansfer);
     accountTransfer.movements.push(amoutTansfer);
@@ -103,18 +139,23 @@ btnTransfer.addEventListener('click', (e) => {
 
 btnLoan.addEventListener("click", (e) => {
   e.preventDefault();
-  const loanAmout = Number(inputLoanAmount.value)
+  const loanAmout =Math.floor(inputLoanAmount.value)
   
-  if (loanAmout > 0 && currentAccount.movements.some(arr => arr > 0.1 * loanAmout)) {
-    console.log("Loan approved");
-    currentAccount.movements.push(loanAmout);
-  }
-  else {
-    console.log("Loan is not approved");
-  }
-  updateUi(currentAccount);
-  inputLoanAmount.value = ' ';
-
+  setTimeout(()=>
+  {
+    if (loanAmout > 0 && currentAccount.movements.some(arr => arr > 0.1 * loanAmout)) {
+      console.log("Loan approved");
+      currentAccount.movements.push(loanAmout);
+    }
+    else {
+      console.log("Loan is not approved");
+    }
+  
+    updateUi(currentAccount);
+   
+  },10000)
+  
+  inputLoanAmount.value ='';
 })
 
 
@@ -166,19 +207,23 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
 ////////////////////////////
-const displayMovements = function (movements) {
+const displayMovements = function (acc) {
   containerMovements.innerHTML = " ";
   
-  movements.forEach(function (movement, i) {
+ acc. movements.forEach(function (movement, i) {
     const type = (movement > 0) ? 'deposit' : 'withdrawal';
 
+    const date=new Date();
     // Important for this file
     const html = `
       <div class="movements__row">
       <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
+          
+      <div class="movements__date">${date.getMinutes()}</div>
       
-      <div class="movements__value">${movement}💲</div>
+      <div class="movements__value">${movement.toFixed(2)}💲</div>
     </div>
+   
       `
     containerMovements.insertAdjacentHTML("afterbegin", html);
   })
@@ -195,27 +240,27 @@ accounts.forEach((account) => {
 //////////////////////////// Total value 
 const displaytotalValue = function (ac) {
   ac.balance = ac.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${ac.balance}💲`
+  labelBalance.textContent = `${ac.balance.toFixed(2)}💲`
 }
 
 /////////////////////////
 ////////////////////////// Total income
 const displaytotalIncome = (movements) => {
   const income = movements.filter((mov) => mov > 0).reduce((acc, arr) => acc + arr, 0)
-  labelSumIn.textContent = `${income}💲`;
+  labelSumIn.textContent = `${income.toFixed(2)}💲`;
 }
 /////////////////
 //////////////////////////// Total expense
 const displaytotalExpense = (movements) => {
   const income = movements.filter((mov) => mov < 0).reduce((acc, arr) => acc + arr, 0);
-  labelSumOut.textContent = `${income}💲`;
+  labelSumOut.textContent = `${income.toFixed(2)}💲`;
 }
 
 ///////////////////////////
 ///////////////////      Total interest
 const displaytotalIntesert = (movements) => {
   const interest = movements.filter((mov) => mov > 0).map((depo) => { return (depo * 1.2) / 100 }).reduce((acc, arr, i, a) => acc + arr, 0);
-  labelSumInterest.textContent = `${interest}💲`
+  labelSumInterest.textContent = `${interest.toFixed(2)}💲`
 }
 
 ////////////////////////////////
@@ -225,7 +270,7 @@ const displaytotalIntesert = (movements) => {
 /////////////////////////
 
 const updateUi = (acc) => {
-  displayMovements(acc.movements);
+  displayMovements(acc);
   //display balance
 
   displaytotalValue(acc);
@@ -242,6 +287,9 @@ console.log(total);
 // flatMap
 const Total = accounts.flatMap(acc => acc.movements).reduce((acc, arr) => arr + acc, 0);
 console.log(Total);
+
+// countdown
+
 
 
 
