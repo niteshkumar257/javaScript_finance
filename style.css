@@ -90,7 +90,7 @@ nav {
   gap: 2rem;
 
   /* NOTE This creates the fade in/out anumation */
-  opacity: 100;
+  opacity: 99;
   transition: all 1s;
 }
 .opacity
